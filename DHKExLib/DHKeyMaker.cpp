@@ -1,17 +1,22 @@
 #include "stdafx.h"
 #include "DHKeyMaker.h"
 
-#include <MyLib/Crypto/CryptoProvider.h>
-#include <MyLib/Crypto/CryptoKey.h>
 #include "DHKExException.h"
 
 
-DHKEx::CDHKeyMaker::CDHKeyMaker() : m_DHCryptoProvider(NULL) {
+DHKEx::CDHKeyMaker::CDHKeyMaker() : m_cryptoProvider(), m_cryptoKey() {
 }
 DHKEx::CDHKeyMaker::~CDHKeyMaker() {
 }
 
-DHKEx::DHBlob DHKEx::CDHKeyMaker::createPublicKey() const {
+DHKEx::DHBlob DHKEx::CDHKeyMaker::createPublicKey() {
+
+	if(m_cryptoProvider.isOpen()) {
+		RAISE_DHKExEXCEPTION("createPublicKey provider is opened");
+	}
+	if(m_cryptoKey.isEnable()) {
+		RAISE_DHKExEXCEPTION("createPublicKey generator is enabled");
+	}
 
 	// Microsoft Diffie-Hellman Crypto Provider ÇéÊìæ
 	MyLib::Crypto::CCryptoProvider cryptoProvider;
@@ -25,52 +30,58 @@ DHKEx::DHBlob DHKEx::CDHKeyMaker::createPublicKey() const {
 		RAISE_DHKExEXCEPTION("createPublicKey CryptGenKey err(%u)", ::GetLastError());
 	}
 
-/*
-    // Public key value, (G^X) mod P is calculated.
-    DWORD dwDataLen1;
+	// ëäéËÇ…ìnÇ∑åˆäJÉLÅ[ÇéÊìæ
+	DWORD length = 0;
+	if(!::CryptExportKey(cryptoKey, NULL, PUBLICKEYBLOB, 0, NULL, &length)) {
+		RAISE_DHKExEXCEPTION("createPublicKey CryptExportKey(getLength) err(%u)", ::GetLastError());
+	}
+	DHKEx::DHBlob publicKey(length, 0);
+	if(!::CryptExportKey(cryptoKey, NULL, PUBLICKEYBLOB, 0, &publicKey[0], &length)) {
+		RAISE_DHKExEXCEPTION("createPublicKey CryptExportKey err(%u)", ::GetLastError());
+	}
 
-    // Get the size for the key BLOB.
-    fReturn = CryptExportKey(
-        hPrivateKey1,
-        NULL,
-        PUBLICKEYBLOB,
-        0,
-        NULL,
-        &dwDataLen1);
-    if(!fReturn)
-    {
-        goto ErrorExit;
-    }
-
-    // Allocate the memory for the key BLOB.
-    if(!(pbKeyBlob1 = (PBYTE)malloc(dwDataLen1)))
-    { 
-        goto ErrorExit;
-    }
-
-    // Get the key BLOB.
-    fReturn = CryptExportKey(
-        hPrivateKey1,
-        0,
-        PUBLICKEYBLOB,
-        0,
-        pbKeyBlob1,
-        &dwDataLen1);
-    if(!fReturn)
-    {
-        goto ErrorExit;
-    }
-*/
-	return DHKEx::DHBlob();
+	m_cryptoProvider.attach(cryptoProvider.release());
+	m_cryptoKey.attach(cryptoKey.release());
+	return publicKey;
 }
-DHKEx::DHBlob DHKEx::CDHKeyMaker::createPublicKey(const DHBlob& prime, const DHBlob& generator) const {
+DHKEx::DHBlob DHKEx::CDHKeyMaker::createPublicKey(const DHBlob& prime, const DHBlob& generator) {
 	return DHKEx::DHBlob();
 }
 DHKEx::DHBlob DHKEx::CDHKeyMaker::prime() const {
-	return DHKEx::DHBlob();
+	if(!m_cryptoProvider.isOpen()) {
+		RAISE_DHKExEXCEPTION("prime provider isn't opened");
+	}
+	if(!m_cryptoKey.isEnable()) {
+		RAISE_DHKExEXCEPTION("prime generator isn't enabled");
+	}
+
+	DWORD length = 0;
+	if(!::CryptGetKeyParam(m_cryptoKey, KP_P, NULL, &length, 0)) {
+		RAISE_DHKExEXCEPTION("prime CryptGetKeyParam(getLength) err(%u)", ::GetLastError());
+	}
+	DHKEx::DHBlob primeValue(length, 0);
+	if(!::CryptGetKeyParam(m_cryptoKey, KP_P, &primeValue[0], &length, 0)) {
+		RAISE_DHKExEXCEPTION("prime CryptGetKeyParam err(%u)", ::GetLastError());
+	}
+	return primeValue;
 }
 DHKEx::DHBlob DHKEx::CDHKeyMaker::generator() const {
-	return DHKEx::DHBlob();
+	if(!m_cryptoProvider.isOpen()) {
+		RAISE_DHKExEXCEPTION("generator provider isn't opened");
+	}
+	if(!m_cryptoKey.isEnable()) {
+		RAISE_DHKExEXCEPTION("generator generator isn't enabled");
+	}
+
+	DWORD length = 0;
+	if(!::CryptGetKeyParam(m_cryptoKey, KP_G, NULL, &length, 0)) {
+		RAISE_DHKExEXCEPTION("generator CryptGetKeyParam(getLength) err(%u)", ::GetLastError());
+	}
+	DHKEx::DHBlob generatorValue(length, 0);
+	if(!::CryptGetKeyParam(m_cryptoKey, KP_G, &generatorValue[0], &length, 0)) {
+		RAISE_DHKExEXCEPTION("generator CryptGetKeyParam err(%u)", ::GetLastError());
+	}
+	return generatorValue;
 }
 HCRYPTKEY DHKEx::CDHKeyMaker::createSecretKey(const DHBlob& publicKey) {
 	return NULL;

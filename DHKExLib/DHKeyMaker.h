@@ -1,6 +1,10 @@
 #pragma once
 
 #include <wincrypt.h>
+
+#include <MyLib/Crypto/CryptoProvider.h>
+#include <MyLib/Crypto/CryptoKey.h>
+
 #include "DHBlob.h"
 
 namespace DHKEx {
@@ -11,14 +15,15 @@ public:
 	~CDHKeyMaker();
 
 public:
-	DHBlob createPublicKey() const;
-	DHBlob createPublicKey(const DHBlob& prime, const DHBlob& generator) const;
+	DHBlob createPublicKey();
+	DHBlob createPublicKey(const DHBlob& prime, const DHBlob& generator);
 	DHBlob prime() const;
 	DHBlob generator() const;
 	HCRYPTKEY createSecretKey(const DHBlob& publicKey);
 
 private:
-	HCRYPTPROV m_DHCryptoProvider;
+	MyLib::Crypto::CCryptoProvider m_cryptoProvider;
+	MyLib::Crypto::CCryptoKey m_cryptoKey;
 };
 
 }

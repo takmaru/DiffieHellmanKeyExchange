@@ -6,6 +6,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyLib", "..\MyLib\MyLib\MyLib.vcxproj", "{C8CE744C-3A9C-421E-BA9A-80699B9823BA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DHKExLib", "DHKExLib\DHKExLib.vcxproj", "{51C4281C-BB92-4BA9-808C-83C5FD442711}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C8CE744C-3A9C-421E-BA9A-80699B9823BA} = {C8CE744C-3A9C-421E-BA9A-80699B9823BA}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
