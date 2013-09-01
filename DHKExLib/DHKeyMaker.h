@@ -15,8 +15,9 @@ public:
 	~CDHKeyMaker();
 
 public:
-	DHBlob createPublicKey();
-	DHBlob createPublicKey(const DHBlob& prime, const DHBlob& generator);
+	void createPublicKey();
+	void createPublicKey(const DHBlob& prime, const DHBlob& generator);
+	DHBlob publicKey() const;
 	DHBlob prime() const;
 	DHBlob generator() const;
 	HCRYPTKEY createSecretKey(const DHBlob& publicKey);

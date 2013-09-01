@@ -1,9 +1,9 @@
 #pragma once
 
-#include <vector>
+#include <MyLib/Data/BinaryData.h>
 
 namespace DHKEx {
 
-typedef std::vector<unsigned char> DHBlob;
+typedef MyLib::Data::BinaryData DHBlob;
 
 }
